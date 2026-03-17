@@ -1,0 +1,1971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LR Options Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --bg2: #111418;
+    --bg3: #181c22;
+    --border: #232830;
+    --accent: #00e5a0;
+    --accent2: #00b8ff;
+    --warn: #ff6b35;
+    --danger: #ff3b5c;
+    --text: #e8ecf0;
+    --text2: #8a95a3;
+    --text3: #4a5568;
+    --green: #00e5a0;
+    --red: #ff3b5c;
+    --gold: #ffd166;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  /* HEADER */
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--accent); }
+  .header-date {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text2);
+  }
+  /* NAV TABS */
+  nav {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    gap: 4px;
+  }
+  .tab {
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: var(--text2);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    background: none;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  /* MAIN */
+  main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+  .page { display: none; }
+  .page.active { display: block; }
+  /* STAT CARDS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+  }
+  .stat-card.warn::before { background: var(--warn); }
+  .stat-card.info::before { background: var(--accent2); }
+  .stat-card.gold::before { background: var(--gold); }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 10px;
+  }
+  .stat-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+  }
+  .stat-value.green { color: var(--green); }
+  .stat-value.red { color: var(--red); }
+  .stat-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text2);
+    margin-top: 6px;
+  }
+  /* SECTION HEADERS */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text2);
+  }
+  /* TABLES */
+  .table-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: var(--bg3); }
+  th {
+    padding: 12px 14px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(0,229,160,0.03); }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge-put { background: rgba(0,184,255,0.12); color: var(--accent2); }
+  .badge-call { background: rgba(255,209,102,0.12); color: var(--gold); }
+  .badge-open { background: rgba(0,229,160,0.12); color: var(--green); }
+  .badge-closed { background: rgba(74,85,104,0.3); color: var(--text2); }
+  .pos { color: var(--green); }
+  .neg { color: var(--red); }
+  /* FORMS */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 7px;
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--accent);
+  }
+  .form-group select option { background: var(--bg3); }
+  /* BUTTONS */
+  .btn {
+    padding: 10px 22px;
+    border-radius: 7px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+  }
+  .btn-primary:hover { background: #00ffc4; transform: translateY(-1px); }
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text2);
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger {
+    background: transparent;
+    border: 1px solid rgba(255,59,92,0.3);
+    color: var(--red);
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+  .btn-danger:hover { background: rgba(255,59,92,0.1); }
+  /* PRICER PANEL */
+  .pricer-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .pricer-result {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+  }
+  .result-item label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text3);
+    display: block;
+    margin-bottom: 5px;
+  }
+  .result-item .val {
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  /* PRICE LOOKUP */
+  .price-lookup {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    margin-bottom: 20px;
+  }
+  .price-lookup .form-group { flex: 0 0 200px; margin-bottom: 0; }
+  .live-price {
+    font-family: 'Space Mono', monospace;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent);
+    padding: 8px 0;
+  }
+  .price-note {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+  /* EXPOSURE BAR */
+  .exposure-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .exp-symbol {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    width: 60px;
+    color: var(--text);
+  }
+  .exp-bar-wrap { flex: 1; height: 6px; background: var(--bg3); border-radius: 3px; }
+  .exp-bar { height: 100%; border-radius: 3px; background: var(--accent); transition: width 0.5s; }
+  .exp-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text2);
+    width: 90px;
+    text-align: right;
+  }
+  .exp-pct {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text3);
+    width: 46px;
+    text-align: right;
+  }
+  /* ALERTS */
+  .alert {
+    padding: 12px 16px;
+    border-radius: 7px;
+    font-size: 13px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .alert-success { background: rgba(0,229,160,0.08); border: 1px solid rgba(0,229,160,0.2); color: var(--green); }
+  .alert-error { background: rgba(255,59,92,0.08); border: 1px solid rgba(255,59,92,0.2); color: var(--red); }
+  .alert-info { background: rgba(0,184,255,0.08); border: 1px solid rgba(0,184,255,0.2); color: var(--accent2); }
+  /* SPINNER */
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  /* TWO COLUMNS */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+  /* INLINE CLOSE PANEL */
+  .close-panel {
+    display: none;
+    background: var(--bg3);
+    border-top: 2px solid var(--accent);
+    padding: 18px 20px;
+    animation: slideDown 0.18s ease;
+  }
+  .close-panel.visible { display: block; }
+  @keyframes slideDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+  .close-panel-inner {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .close-panel .form-group { margin: 0; flex: 0 0 160px; }
+  .close-panel .form-group label { font-size: 10px; }
+  .close-panel .form-group input { padding: 7px 10px; font-size: 12px; }
+  .close-panel-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .close-panel-hint {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 6px;
+  }
+  tr.closing-row > td { background: rgba(0,229,160,0.03); }
+  .check-col { width: 36px; text-align: center; }
+  input[type=checkbox].close-check {
+    width: 16px; height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .bulk-bar {
+    display: none;
+    background: var(--bg3);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .bulk-bar.visible { display: flex; }
+  .bulk-bar-label { font-size: 13px; font-weight: 700; color: var(--accent); }
+
+  /* EMPTY STATE */
+  .empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text3);
+    font-size: 14px;
+  }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  /* NOTES CELL */
+  td.notes { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text2); font-style: italic; }
+  .close-btn-wrap { display: flex; gap: 6px; }
+  /* BACKUP */
+  .header-actions { display: flex; align-items: center; gap: 10px; }
+  .btn-backup {
+    padding: 7px 14px; border-radius: 6px; font-family: 'Syne', sans-serif;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    border: 1px solid var(--border); background: transparent; color: var(--text2); transition: all 0.2s;
+  }
+  .btn-backup:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-restore {
+    padding: 7px 14px; border-radius: 6px; font-family: 'Syne', sans-serif;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    border: 1px solid var(--border); background: transparent; color: var(--text2); transition: all 0.2s;
+  }
+  .btn-restore:hover { border-color: var(--accent2); color: var(--accent2); }
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); z-index: 500;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.visible { display: flex; }
+  .modal {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 28px; width: 500px; max-width: 95vw;
+  }
+  .modal-title { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+  .modal-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; line-height: 1.6; }
+  .modal textarea {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 7px; padding: 12px; color: var(--text);
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    height: 140px; outline: none; resize: vertical; margin-bottom: 16px;
+  }
+  .modal textarea:focus { border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-err { color: var(--red); font-size: 12px; margin-bottom: 10px; display: none; }
+  /* ANALYTICS */
+  .chart-bar-wrap { display:flex; flex-direction:column; gap:10px; }
+  .chart-bar-row { display:flex; align-items:center; gap:12px; }
+  .chart-bar-label { font-family:'Space Mono',monospace; font-size:12px; width:56px; color:var(--text); font-weight:700; }
+  .chart-bar-track { flex:1; height:22px; background:var(--bg3); border-radius:4px; overflow:hidden; position:relative; }
+  .chart-bar-fill { height:100%; border-radius:4px; transition:width 0.4s; display:flex; align-items:center; padding-left:8px; }
+  .chart-bar-val { font-family:'Space Mono',monospace; font-size:11px; font-weight:700; white-space:nowrap; }
+  .chart-bar-sub { font-family:'Space Mono',monospace; font-size:11px; color:var(--text2); width:80px; text-align:right; }
+  .month-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px; }
+  .month-card { background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:12px; }
+  .month-card-label { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text3); margin-bottom:6px; }
+  .month-card-val { font-family:'Space Mono',monospace; font-size:16px; font-weight:700; }
+  /* RULES */
+  .rules-wrap { display:flex; flex-direction:column; gap:10px; }
+  .rule-item {
+    background:var(--bg2); border:1px solid var(--border); border-radius:9px;
+    padding:16px 18px; display:flex; align-items:flex-start; gap:14px;
+    transition: border-color 0.2s;
+  }
+  .rule-item:hover { border-color: var(--accent); }
+  .rule-number {
+    font-family:'Space Mono',monospace; font-size:22px; font-weight:700;
+    color:var(--accent); opacity:0.4; line-height:1; flex-shrink:0; width:32px;
+  }
+  .rule-content { flex:1; }
+  .rule-category {
+    font-size:10px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;
+    color:var(--text3); margin-bottom:4px;
+  }
+  .rule-text { font-size:14px; color:var(--text); line-height:1.5; }
+  .rule-text-input {
+    width:100%; background:transparent; border:none; outline:none;
+    font-family:'Syne',sans-serif; font-size:14px; color:var(--text);
+    line-height:1.5; resize:none; padding:0;
+  }
+  .rule-actions { display:flex; gap:6px; flex-shrink:0; margin-top:2px; }
+  .rule-edit-btn {
+    padding:4px 10px; border-radius:5px; font-size:11px; font-weight:700;
+    cursor:pointer; border:1px solid var(--border); background:transparent;
+    color:var(--text3); transition:all 0.2s;
+  }
+  .rule-edit-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .rule-del-btn {
+    padding:4px 8px; border-radius:5px; font-size:11px; font-weight:700;
+    cursor:pointer; border:1px solid transparent; background:transparent;
+    color:var(--text3); transition:all 0.2s;
+  }
+  .rule-del-btn:hover { color:var(--red); }
+  /* BUYING POWER */
+  .bp-ring-wrap { display:flex; align-items:center; gap:32px; flex-wrap:wrap; }
+  .bp-ring { position:relative; width:140px; height:140px; flex-shrink:0; }
+  .bp-ring svg { transform:rotate(-90deg); }
+  .bp-ring-label { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .bp-ring-pct { font-family:'Space Mono',monospace; font-size:22px; font-weight:700; line-height:1; }
+  .bp-ring-sub { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text2); margin-top:3px; }
+  .bp-stats { display:flex; flex-direction:column; gap:12px; }
+  .bp-stat-row { display:flex; justify-content:space-between; gap:40px; }
+  .bp-stat { }
+  .bp-stat-lbl { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text3); margin-bottom:3px; }
+  .bp-stat-val { font-family:'Space Mono',monospace; font-size:18px; font-weight:700; }
+  /* POSITION SIZE WARNING */
+  .warn-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; background:rgba(255,107,53,0.15); color:var(--warn); margin-left:6px; }
+  /* ROLL */
+  .roll-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; background:rgba(0,184,255,0.12); color:var(--accent2); margin-left:6px; }
+  /* TARGET STRIKE CALC */
+  .strike-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-top:16px; }
+  .strike-card { background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:14px; cursor:pointer; transition:border-color 0.2s; }
+  .strike-card:hover { border-color:var(--accent); }
+  .strike-card-pct { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text3); margin-bottom:4px; }
+  .strike-card-price { font-family:'Space Mono',monospace; font-size:20px; font-weight:700; color:var(--text); }
+  .strike-card-ann { font-family:'Space Mono',monospace; font-size:13px; color:var(--accent); margin-top:4px; }
+  .strike-card-note { font-size:11px; color:var(--text3); margin-top:3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">LR <span>Options</span> Tracker</div>
+  <div class="header-actions">
+    <div class="header-date" id="headerDate"></div>
+    <button class="btn-restore" onclick="openRestoreModal()">⬆ Restore</button>
+    <button class="btn-backup" onclick="backupData()">⬇ Backup</button>
+  </div>
+</header>
+
+<!-- RESTORE MODAL -->
+<div class="modal-overlay" id="restoreModal">
+  <div class="modal">
+    <div class="modal-title">Restore from Backup</div>
+    <div class="modal-sub">Paste the contents of a previously downloaded backup file below. <strong style="color:var(--warn);">This will overwrite your current data.</strong></div>
+    <div class="modal-err" id="restoreErr">Invalid backup file. Please paste the full contents of a .json backup.</div>
+    <textarea id="restoreInput" placeholder="Paste backup JSON here..."></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="restoreData()">Restore Data</button>
+      <button class="btn btn-secondary" onclick="closeRestoreModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<nav>
+  <button class="tab active" onclick="showPage('dashboard')">Dashboard</button>
+  <button class="tab" onclick="showPage('pricer')">Pricer</button>
+  <button class="tab" onclick="showPage('open')">Open Positions</button>
+  <button class="tab" onclick="showPage('closed')">Closed Trades</button>
+  <button class="tab" onclick="showPage('analytics')">Analytics</button>
+  <button class="tab" onclick="showPage('log')">Log Trade</button>
+  <button class="tab" onclick="showPage('rules')">My Rules</button>
+</nav>
+
+<main>
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div id="dashAlert"></div>
+    <div class="stats-grid" id="dashStats"></div>
+    <div class="two-col">
+      <div>
+        <div class="section-header"><span class="section-title">Exposure by Symbol</span></div>
+        <div class="table-wrap" style="padding:16px 20px;" id="exposureChart"></div>
+      </div>
+      <div>
+        <div class="section-header"><span class="section-title">Upcoming Expirations</span></div>
+        <div class="table-wrap" id="expiryTable">
+          <table>
+            <thead><tr><th>Symbol</th><th>Expiry</th><th>Days</th><th>Strike</th><th>Exposure</th></tr></thead>
+            <tbody id="expiryTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="section-header" style="margin-top:8px;"><span class="section-title">Recent Closed Trades</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Closed</th><th>Symbol</th><th>Type</th><th>Strike</th><th>Net Proceeds</th><th>Days Held</th><th>Ann. Return</th><th>Notes</th></tr></thead>
+        <tbody id="recentClosedTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PRICER -->
+  <div class="page" id="page-pricer">
+    <div class="pricer-panel">
+      <div class="section-header"><span class="section-title">Pre-Trade Pricing Model</span></div>
+      <div style="display:flex;gap:12px;align-items:flex-end;margin-bottom:20px;flex-wrap:wrap;">
+        <div class="form-group" style="margin:0;flex:0 0 160px;">
+          <label>Ticker Symbol</label>
+          <input type="text" id="pricerSymbol" placeholder="e.g. AAPL" style="text-transform:uppercase">
+        </div>
+        <button class="btn btn-primary" onclick="fetchPricerQuote()">Get Live Price</button>
+        <div id="pricerPriceDisplay" style="padding:8px 0;"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Current Stock Price</label>
+          <input type="number" id="pricerStockPrice" placeholder="0.00" step="0.01" oninput="calcPricer()">
+        </div>
+        <div class="form-group">
+          <label>Strike Price</label>
+          <input type="number" id="pricerStrike" placeholder="0.00" step="0.01" oninput="calcPricer()">
+        </div>
+        <div class="form-group">
+          <label>Premium (per share)</label>
+          <input type="number" id="pricerPremium" placeholder="0.00" step="0.01" oninput="calcPricer()">
+        </div>
+        <div class="form-group">
+          <label># of Contracts</label>
+          <input type="number" id="pricerContracts" value="1" min="1" oninput="calcPricer()">
+        </div>
+        <div class="form-group">
+          <label>Commission (total)</label>
+          <input type="number" id="pricerCommission" value="0.66" step="0.01" oninput="calcPricer()">
+        </div>
+        <div class="form-group">
+          <label>Expiration Date</label>
+          <input type="date" id="pricerExpiry" oninput="calcPricer()">
+        </div>
+      </div>
+      <div class="pricer-result" id="pricerResult">
+        <div class="result-item"><label>Strike vs Price</label><div class="val" id="pr-pctBelow">—</div></div>
+        <div class="result-item"><label>Net Proceeds</label><div class="val" id="pr-net">—</div></div>
+        <div class="result-item"><label>Total Exposure</label><div class="val" id="pr-exposure">—</div></div>
+        <div class="result-item"><label>Days to Expiry</label><div class="val" id="pr-days">—</div></div>
+        <div class="result-item"><label>Period Return</label><div class="val" id="pr-periodReturn">—</div></div>
+        <div class="result-item"><label>Annualized Return</label><div class="val" id="pr-annReturn" style="color:var(--accent)">—</div></div>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:10px;">
+        <button class="btn btn-primary" onclick="pricerToLog()">→ Log This Trade</button>
+        <button class="btn btn-secondary" onclick="clearPricer()">Clear</button>
+      </div>
+    </div>
+    <div class="pricer-panel" style="margin-top:0;">
+      <div class="section-header"><span class="section-title">Quick Price Lookup</span></div>
+      <div class="price-lookup">
+        <div class="form-group">
+          <label>Symbol</label>
+          <input type="text" id="lookupSymbol" placeholder="e.g. MSFT" style="text-transform:uppercase" onkeydown="if(event.key==='Enter')fetchQuote()">
+        </div>
+        <button class="btn btn-primary" onclick="fetchQuote()">Look Up</button>
+        <div id="quoteResult"></div>
+      </div>
+      <div class="price-note">Uses Yahoo Finance — free, no API key needed. Prices may be delayed 15 min.</div>
+    </div>
+
+    <!-- Target Strike Calculator -->
+    <div class="pricer-panel" style="margin-top:0;">
+      <div class="section-header"><span class="section-title">Target Strike Finder</span></div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;">Enter a ticker and premium to see strike suggestions at various OTM levels with estimated annualized returns.</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px;">
+        <div class="form-group" style="margin:0;flex:0 0 140px;">
+          <label>Symbol</label>
+          <input type="text" id="strikeSymbol" placeholder="e.g. AAPL" style="text-transform:uppercase" onkeydown="if(event.key==='Enter')fetchStrikePrice()">
+        </div>
+        <button class="btn btn-primary" onclick="fetchStrikePrice()">Get Price</button>
+        <div id="strikePriceDisplay"></div>
+      </div>
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="form-group">
+          <label>Stock Price</label>
+          <input type="number" id="strikeStock" placeholder="0.00" step="0.01" oninput="calcStrikes()">
+        </div>
+        <div class="form-group">
+          <label>Est. Premium / share</label>
+          <input type="number" id="strikePremium" placeholder="e.g. 1.50" step="0.01" oninput="calcStrikes()">
+        </div>
+        <div class="form-group">
+          <label>Contracts</label>
+          <input type="number" id="strikeContracts" value="1" min="1" oninput="calcStrikes()">
+        </div>
+        <div class="form-group">
+          <label>Days to Expiry</label>
+          <input type="number" id="strikeDays" placeholder="e.g. 45" oninput="calcStrikes()">
+        </div>
+      </div>
+      <div class="strike-grid" id="strikeCards"></div>
+    </div>
+
+    <!-- Roll Tracker -->
+    <div class="pricer-panel" style="margin-top:0;">
+      <div class="section-header"><span class="section-title">Roll a Position</span></div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;">Rolling closes the original trade and opens a new one, keeping them linked so your true P&L is tracked correctly.</div>
+      <div id="rollAlert"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Position to Roll</label>
+          <select id="rollSelect"><option value="">-- Select Open Position --</option></select>
+        </div>
+        <div class="form-group">
+          <label>Roll Date</label>
+          <input type="date" id="rollDate">
+        </div>
+        <div class="form-group">
+          <label>Buyback Cost (debit)</label>
+          <input type="number" id="rollBuyback" value="0" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>New Strike</label>
+          <input type="number" id="rollNewStrike" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>New Premium (credit)</label>
+          <input type="number" id="rollNewPremium" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>New Expiry</label>
+          <input type="date" id="rollNewExpiry">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="rollPosition()" style="margin-top:4px;">Execute Roll</button>
+    </div>
+  </div>
+
+  <!-- OPEN POSITIONS -->
+  <div class="page" id="page-open">
+    <div class="section-header">
+      <span class="section-title">Open Positions</span>
+      <span style="font-size:12px;color:var(--text3);">Check a row to close it inline</span>
+    </div>
+    <div id="openAlert"></div>
+    <!-- Bulk close bar (shows when multiple checked) -->
+    <div class="bulk-bar" id="bulkBar">
+      <span class="bulk-bar-label" id="bulkLabel">2 selected</span>
+      <div class="form-group" style="margin:0;flex:0 0 150px;">
+        <label style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);display:block;margin-bottom:6px;">Close Date</label>
+        <input type="date" id="bulkCloseDate" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Space Mono',monospace;font-size:12px;outline:none;width:100%;">
+      </div>
+      <div class="form-group" style="margin:0;flex:0 0 140px;">
+        <label style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);display:block;margin-bottom:6px;">Buyback Price</label>
+        <input type="number" id="bulkBuyback" value="0" step="0.01" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Space Mono',monospace;font-size:12px;outline:none;width:100%;">
+      </div>
+      <div class="form-group" style="margin:0;flex:1;min-width:160px;">
+        <label style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);display:block;margin-bottom:6px;">Notes</label>
+        <input type="text" id="bulkNotes" placeholder="e.g. expired worthless" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Space Mono',monospace;font-size:12px;outline:none;width:100%;">
+      </div>
+      <button class="btn btn-primary" onclick="bulkClose()" style="white-space:nowrap;">Close Selected</button>
+      <button class="btn btn-secondary" onclick="clearChecks()" style="white-space:nowrap;">Cancel</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="check-col"><input type="checkbox" id="checkAll" onclick="toggleAll(this)" style="accent-color:var(--accent);cursor:pointer;width:15px;height:15px;"></th>
+            <th>Symbol</th><th>Type</th><th>Exec Date</th><th>Expiry</th><th>Days Left</th>
+            <th>Strike</th><th>Stock @ Entry</th><th>Contracts</th><th>Premium</th>
+            <th>Net Proceeds</th><th>Exposure</th><th>Ann. Return</th><th>Del</th>
+          </tr>
+        </thead>
+        <tbody id="openTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CLOSED TRADES -->
+  <div class="page" id="page-closed">
+    <div class="section-header"><span class="section-title">Closed Trade History</span></div>
+    <div class="stats-grid" id="closedStats"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Closed</th><th>Symbol</th><th>Type</th><th>Exec Date</th><th>Expiry</th>
+            <th>Strike</th><th>Contracts</th><th>Premium</th><th>Buyback</th>
+            <th>Net Proceeds</th><th>Days Held</th><th>Exposure</th><th>Ann. Return</th><th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="closedTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- LOG TRADE -->
+  <div class="page" id="page-log">
+    <div class="pricer-panel">
+      <div class="section-header"><span class="section-title">Log New Trade</span></div>
+      <div id="logAlert"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Symbol</label>
+          <input type="text" id="logSymbol" placeholder="e.g. AAPL" style="text-transform:uppercase">
+        </div>
+        <div class="form-group">
+          <label>Strategy</label>
+          <select id="logType">
+            <option value="Put">Cash-Secured Put</option>
+            <option value="Call">Covered Call</option>
+            <option value="Put-DOTM">Deep OTM Put</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Execution Date</label>
+          <input type="date" id="logExecDate">
+        </div>
+        <div class="form-group">
+          <label>Expiration Date</label>
+          <input type="date" id="logExpiry">
+        </div>
+        <div class="form-group">
+          <label>Stock Price at Trade</label>
+          <input type="number" id="logStockPrice" placeholder="0.00" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Strike Price</label>
+          <input type="number" id="logStrike" placeholder="0.00" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Premium (per share)</label>
+          <input type="number" id="logPremium" placeholder="0.00" step="0.01">
+        </div>
+        <div class="form-group">
+          <label># of Contracts</label>
+          <input type="number" id="logContracts" value="1" min="1">
+        </div>
+        <div class="form-group">
+          <label>Commission (total)</label>
+          <input type="number" id="logCommission" value="0.66" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Delta at Entry</label>
+          <input type="number" id="logDelta" placeholder="e.g. -0.15" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Theta at Entry</label>
+          <input type="number" id="logTheta" placeholder="e.g. 0.05" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>IV at Entry (%)</label>
+          <input type="number" id="logIV" placeholder="e.g. 32" step="0.1">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:20px;">
+        <label>Notes</label>
+        <textarea id="logNotes" rows="2" placeholder="e.g. deep OTM, high IV, earnings play..."></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="logTrade()">Log Trade</button>
+    </div>
+
+    <!-- Close Out Form -->
+    <div class="pricer-panel">
+      <div class="section-header"><span class="section-title">Close Out a Position</span></div>
+      <div id="closeAlert"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Select Open Position</label>
+          <select id="closeSelect"><option value="">-- Select --</option></select>
+        </div>
+        <div class="form-group">
+          <label>Close Date</label>
+          <input type="date" id="closeDate">
+        </div>
+        <div class="form-group">
+          <label>Buyback Price (0 = expired)</label>
+          <input type="number" id="closeBuyback" value="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Buyback Commission</label>
+          <input type="number" id="closeComm" value="0.66" step="0.01">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:20px;">
+        <label>Notes</label>
+        <textarea id="closeNotes" rows="2" placeholder="expired worthless, bought back, etc."></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="closeTrade()">Close Position</button>
+    </div>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div class="page" id="page-analytics">
+
+    <!-- Buying Power -->
+    <div class="pricer-panel" style="margin-bottom:24px;">
+      <div class="section-header">
+        <span class="section-title">Buying Power & Account</span>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <label style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);">Account Size</label>
+          <input type="number" id="accountSize" placeholder="e.g. 250000" step="1000"
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 12px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;outline:none;width:160px;"
+            oninput="saveAccountSize();renderAnalytics()">
+        </div>
+      </div>
+      <div class="bp-ring-wrap" id="bpPanel"></div>
+    </div>
+
+    <!-- Position Size Warnings -->
+    <div class="pricer-panel" style="margin-bottom:24px;">
+      <div class="section-header">
+        <span class="section-title">Position Size Warnings</span>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <label style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);">Max % per Ticker</label>
+          <input type="number" id="maxConcentration" value="20" min="1" max="100" step="1"
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 12px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;outline:none;width:80px;"
+            oninput="renderAnalytics()">
+          <span style="font-size:12px;color:var(--text3);">of total exposure</span>
+        </div>
+      </div>
+      <div id="sizeWarnings"></div>
+    </div>
+
+    <div class="two-col">
+      <!-- Win/Loss by Ticker -->
+      <div>
+        <div class="pricer-panel">
+          <div class="section-header"><span class="section-title">Performance by Ticker</span></div>
+          <div id="tickerPerf"></div>
+        </div>
+      </div>
+      <!-- Monthly Income -->
+      <div>
+        <div class="pricer-panel">
+          <div class="section-header"><span class="section-title">Monthly Premium Income</span></div>
+          <div class="month-grid" id="monthlyIncome"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RULES -->
+  <div class="page" id="page-rules">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div style="font-size:22px;font-weight:800;margin-bottom:4px;">My Trading Rules</div>
+        <div style="font-size:13px;color:var(--text2);">Your personal discipline checklist. Review before every trade. Click any rule to edit it.</div>
+      </div>
+      <button class="btn btn-primary" onclick="addRule()">+ Add Rule</button>
+    </div>
+    <div class="rules-wrap" id="rulesWrap"></div>
+  </div>
+
+</main>
+
+<script>
+// ─────────────────────────────────────────
+// DATA STORE
+// ─────────────────────────────────────────
+let openTrades = [];
+let closedTrades = [];
+
+function save() {
+  try {
+    localStorage.setItem('lr_open', JSON.stringify(openTrades));
+    localStorage.setItem('lr_closed', JSON.stringify(closedTrades));
+  } catch(e) {}
+}
+function load() {
+  try {
+    const o = localStorage.getItem('lr_open');
+    const c = localStorage.getItem('lr_closed');
+    // One-time migration: wipe old sample data if it contains 2021 dates
+    if (o) {
+      const parsed = JSON.parse(o);
+      const hasOldData = parsed.some(t => t.execDate && t.execDate.startsWith('2021'));
+      if (hasOldData) { localStorage.removeItem('lr_open'); localStorage.removeItem('lr_closed'); }
+      else { openTrades = parsed; }
+    }
+    if (closedTrades.length === 0) {
+      const c2 = localStorage.getItem('lr_closed');
+      if (c2) { const cp = JSON.parse(c2); const hasOld = cp.some(t => t.execDate && t.execDate.startsWith('2020')); if (!hasOld) closedTrades = cp; }
+    }
+  } catch(e) {}
+}
+
+function loadSampleData() {
+  openTrades = [];
+  closedTrades = [];
+  save();
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+// ─────────────────────────────────────────
+// CALCULATIONS
+// ─────────────────────────────────────────
+function calcNet(t) {
+  return (t.premium * t.contracts * 100) - t.commission;
+}
+function calcExposure(t) {
+  return t.strike * t.contracts * 100;
+}
+function calcDaysLeft(expiry) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const exp = new Date(expiry);
+  return Math.round((exp - today) / 86400000);
+}
+function calcDays(exec, expiry) {
+  const a = new Date(exec), b = new Date(expiry);
+  return Math.round((b - a) / 86400000);
+}
+function calcAnnReturn(t) {
+  const net = calcNet(t);
+  const exp = calcExposure(t);
+  const days = calcDays(t.execDate, t.expiry);
+  if (!exp || !days) return 0;
+  return (net / exp) * (365 / days);
+}
+function calcClosedNet(t) {
+  const proceeds = (t.premium * t.contracts * 100) - t.commission;
+  const buybackCost = (t.buyback * t.contracts * 100) + (t.buybackComm || 0);
+  return proceeds - buybackCost;
+}
+function calcClosedAnnReturn(t) {
+  const net = calcClosedNet(t);
+  const exp = t.exposure || calcExposure(t);
+  const days = t.daysHeld || 1;
+  if (!exp || !days) return 0;
+  return (net / exp) * (365 / days);
+}
+function fmtMoney(n) {
+  if (n === undefined || n === null || isNaN(n)) return '—';
+  return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+function fmtPct(n) {
+  if (n === undefined || n === null || isNaN(n)) return '—';
+  return (n * 100).toFixed(2) + '%';
+}
+function fmtDate(s) {
+  if (!s) return '—';
+  const d = new Date(s); if (isNaN(d)) return s;
+  return d.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+}
+
+// ─────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => { if(t.getAttribute('onclick').includes("'"+id+"'")) t.classList.add('active'); });
+  if (id==='dashboard') renderDashboard();
+  if (id==='open') renderOpen();
+  if (id==='closed') renderClosed();
+  if (id==='analytics') { loadAccountSize(); renderAnalytics(); }
+  if (id==='rules') renderRules();
+  if (id==='log') { populateCloseSelect(); }
+  if (id==='pricer') { populateRollSelect(); }
+}
+
+// ─────────────────────────────────────────
+// DASHBOARD
+// ─────────────────────────────────────────
+function renderDashboard() {
+  // Stats
+  const totalExposure = openTrades.reduce((s,t) => s + calcExposure(t), 0);
+  const totalPremium = openTrades.reduce((s,t) => s + calcNet(t), 0);
+  const openCount = openTrades.length;
+  const closedCount = closedTrades.length;
+  const closedNet = closedTrades.reduce((s,t) => s + calcClosedNet(t), 0);
+  const avgAnn = openTrades.length ? openTrades.reduce((s,t)=>s+calcAnnReturn(t),0)/openTrades.length : 0;
+
+  document.getElementById('dashStats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Total Exposure</div>
+      <div class="stat-value">${fmtMoney(totalExposure)}</div>
+      <div class="stat-sub">${openCount} open positions</div>
+    </div>
+    <div class="stat-card info">
+      <div class="stat-label">Premium Collected (Open)</div>
+      <div class="stat-value green">${fmtMoney(totalPremium)}</div>
+      <div class="stat-sub">net after commission</div>
+    </div>
+    <div class="stat-card gold">
+      <div class="stat-label">Avg Ann. Return (Open)</div>
+      <div class="stat-value">${fmtPct(avgAnn)}</div>
+      <div class="stat-sub">across all positions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Realized P&L</div>
+      <div class="stat-value ${closedNet>=0?'green':'red'}">${fmtMoney(closedNet)}</div>
+      <div class="stat-sub">${closedCount} closed trades</div>
+    </div>
+  `;
+
+  // Exposure chart
+  const bySymbol = {};
+  openTrades.forEach(t => {
+    bySymbol[t.symbol] = (bySymbol[t.symbol]||0) + calcExposure(t);
+  });
+  const sorted = Object.entries(bySymbol).sort((a,b)=>b[1]-a[1]);
+  const max = sorted[0]?.[1] || 1;
+  const chartHTML = sorted.length ? sorted.map(([sym,val]) => `
+    <div class="exposure-row">
+      <div class="exp-symbol">${sym}</div>
+      <div class="exp-bar-wrap"><div class="exp-bar" style="width:${(val/max*100).toFixed(1)}%"></div></div>
+      <div class="exp-val">${fmtMoney(val)}</div>
+      <div class="exp-pct">${fmtPct(val/totalExposure)}</div>
+    </div>
+  `).join('') : '<div class="empty"><div class="empty-icon">📊</div>No open positions</div>';
+  document.getElementById('exposureChart').innerHTML = chartHTML;
+
+  // Upcoming expirations
+  const sorted2 = [...openTrades].sort((a,b)=>new Date(a.expiry)-new Date(b.expiry)).slice(0,8);
+  const expiryRows = sorted2.map(t => {
+    const dl = calcDaysLeft(t.expiry);
+    const cls = dl <= 7 ? 'neg' : dl <= 21 ? '' : 'pos';
+    return `<tr>
+      <td><strong>${t.symbol}</strong></td>
+      <td>${fmtDate(t.expiry)}</td>
+      <td class="${cls}">${dl}d</td>
+      <td>${fmtMoney(t.strike)}</td>
+      <td>${fmtMoney(calcExposure(t))}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('expiryTbody').innerHTML = expiryRows || '<tr><td colspan="5" class="empty">No positions</td></tr>';
+
+  // Recent closed
+  const recentClosed = [...closedTrades].sort((a,b)=>new Date(b.closedDate)-new Date(a.closedDate)).slice(0,5);
+  const closedRows = recentClosed.map(t => {
+    const net = calcClosedNet(t);
+    const ann = calcClosedAnnReturn(t);
+    return `<tr>
+      <td>${fmtDate(t.closedDate)}</td>
+      <td><strong>${t.symbol}</strong></td>
+      <td><span class="badge badge-put">${t.type}</span></td>
+      <td>${fmtMoney(t.strike)}</td>
+      <td class="${net>=0?'pos':'neg'}">${fmtMoney(net)}</td>
+      <td>${t.daysHeld}d</td>
+      <td class="${ann>=0?'pos':'neg'}">${fmtPct(ann)}</td>
+      <td class="notes">${t.notes||'—'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('recentClosedTbody').innerHTML = closedRows || '<tr><td colspan="8" class="empty">No closed trades yet</td></tr>';
+}
+
+// ─────────────────────────────────────────
+// OPEN POSITIONS
+// ─────────────────────────────────────────
+function renderOpen() {
+  const today = new Date().toISOString().split('T')[0];
+  const rows = openTrades.map(t => {
+    const dl = calcDaysLeft(t.expiry);
+    const net = calcNet(t);
+    const ann = calcAnnReturn(t);
+    const dlCls = dl <= 7 ? 'neg' : '';
+    return `
+    <tr class="trade-row" id="row-${t.id}">
+      <td class="check-col"><input type="checkbox" class="close-check" data-id="${t.id}" onchange="onCheckChange(this)"></td>
+      <td><strong>${t.symbol}</strong></td>
+      <td><span class="badge badge-put">${t.type}</span></td>
+      <td>${fmtDate(t.execDate)}</td>
+      <td>${fmtDate(t.expiry)}</td>
+      <td class="${dlCls}">${dl}d</td>
+      <td>${fmtMoney(t.strike)}</td>
+      <td>${fmtMoney(t.stockAtEntry)}</td>
+      <td>${t.contracts}</td>
+      <td>${fmtMoney(t.premium)}</td>
+      <td class="pos">${fmtMoney(net)}</td>
+      <td>${fmtMoney(calcExposure(t))}</td>
+      <td class="pos">${fmtPct(ann)}</td>
+      <td><button class="btn btn-danger" onclick="deleteTrade('${t.id}')">Del</button></td>
+    </tr>
+    <tr class="panel-row" id="panel-${t.id}" style="display:none;">
+      <td colspan="14" style="padding:0;">
+        <div class="close-panel visible">
+          <div class="close-panel-title">✕ Close Position — ${t.symbol} $${t.strike} ${fmtDate(t.expiry)}</div>
+          <div class="close-panel-inner">
+            <div class="form-group">
+              <label>Close Date</label>
+              <input type="date" id="cd-date-${t.id}" value="${today}">
+            </div>
+            <div class="form-group">
+              <label>Buyback Price <span style="color:var(--text3);font-weight:400">(0 = expired)</span></label>
+              <input type="number" id="cd-buyback-${t.id}" value="0" step="0.01" placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label>Buyback Commission</label>
+              <input type="number" id="cd-comm-${t.id}" value="0.66" step="0.01">
+            </div>
+            <div class="form-group" style="flex:1;min-width:180px;">
+              <label>Notes</label>
+              <input type="text" id="cd-notes-${t.id}" placeholder="expired worthless, bought back at 20%...">
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-end;padding-bottom:1px;">
+              <button class="btn btn-primary" onclick="inlineClose('${t.id}')">Confirm Close</button>
+              <button class="btn btn-secondary" onclick="cancelInlineClose('${t.id}')">Cancel</button>
+            </div>
+          </div>
+          <div class="close-panel-hint">All other trade details (symbol, strike, premium, contracts, etc.) are carried over automatically.</div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('openTbody').innerHTML = rows || `<tr><td colspan="14"><div class="empty"><div class="empty-icon">📋</div>No open positions. Log a trade to get started.</div></td></tr>`;
+  updateBulkBar();
+}
+
+function onCheckChange(cb) {
+  const id = cb.dataset.id;
+  const panelRow = document.getElementById('panel-' + id);
+  const tradeRow = document.getElementById('row-' + id);
+  if (cb.checked) {
+    panelRow.style.display = 'table-row';
+    tradeRow.classList.add('closing-row');
+  } else {
+    panelRow.style.display = 'none';
+    tradeRow.classList.remove('closing-row');
+  }
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const checked = document.querySelectorAll('.close-check:checked');
+  const bar = document.getElementById('bulkBar');
+  const label = document.getElementById('bulkLabel');
+  if (checked.length > 1) {
+    bar.classList.add('visible');
+    label.textContent = `${checked.length} positions selected`;
+  } else {
+    bar.classList.remove('visible');
+  }
+  // sync check-all
+  const all = document.querySelectorAll('.close-check');
+  const ca = document.getElementById('checkAll');
+  if (ca) ca.checked = all.length > 0 && checked.length === all.length;
+}
+
+function toggleAll(master) {
+  document.querySelectorAll('.close-check').forEach(cb => {
+    cb.checked = master.checked;
+    onCheckChange(cb);
+  });
+}
+
+function clearChecks() {
+  document.querySelectorAll('.close-check').forEach(cb => { cb.checked = false; onCheckChange(cb); });
+  document.getElementById('bulkBar').classList.remove('visible');
+}
+
+function inlineClose(id) {
+  const t = openTrades.find(x => x.id === id);
+  if (!t) return;
+  const closeDate = document.getElementById('cd-date-' + id).value;
+  const buyback = parseFloat(document.getElementById('cd-buyback-' + id).value) || 0;
+  const buybackComm = parseFloat(document.getElementById('cd-comm-' + id).value) || 0;
+  const notes = document.getElementById('cd-notes-' + id).value.trim();
+  if (!closeDate) { alert('Please enter a close date.'); return; }
+  const daysHeld = Math.max(1, Math.round((new Date(closeDate) - new Date(t.execDate)) / 86400000));
+  closedTrades.push({ ...t, closedDate: closeDate, buyback, buybackComm, notes, daysHeld, exposure: calcExposure(t) });
+  openTrades = openTrades.filter(x => x.id !== id);
+  save();
+  const net = calcClosedNet({...t, buyback, buybackComm});
+  showAlert('openAlert', `✓ ${t.symbol} $${t.strike} closed — Net P&L: ${fmtMoney(net)}`, 'success');
+  renderOpen();
+  populateCloseSelect();
+}
+
+function cancelInlineClose(id) {
+  const cb = document.querySelector(`.close-check[data-id="${id}"]`);
+  if (cb) { cb.checked = false; onCheckChange(cb); }
+}
+
+function bulkClose() {
+  const closeDate = document.getElementById('bulkCloseDate').value;
+  const buyback = parseFloat(document.getElementById('bulkBuyback').value) || 0;
+  const notes = document.getElementById('bulkNotes').value.trim();
+  if (!closeDate) { alert('Please enter a close date.'); return; }
+  const checked = [...document.querySelectorAll('.close-check:checked')].map(cb => cb.dataset.id);
+  let count = 0;
+  checked.forEach(id => {
+    const t = openTrades.find(x => x.id === id);
+    if (!t) return;
+    const daysHeld = Math.max(1, Math.round((new Date(closeDate) - new Date(t.execDate)) / 86400000));
+    closedTrades.push({ ...t, closedDate: closeDate, buyback, buybackComm: 0, notes, daysHeld, exposure: calcExposure(t) });
+    count++;
+  });
+  openTrades = openTrades.filter(t => !checked.includes(t.id));
+  save();
+  showAlert('openAlert', `✓ ${count} position${count>1?'s':''} closed and moved to history.`, 'success');
+  renderOpen();
+  populateCloseSelect();
+}
+
+function deleteTrade(id) {
+  if (!confirm('Delete this trade? This cannot be undone.')) return;
+  openTrades = openTrades.filter(t => t.id !== id);
+  save(); renderOpen();
+}
+
+// ─────────────────────────────────────────
+// CLOSED TRADES
+// ─────────────────────────────────────────
+function renderClosed() {
+  const totalNet = closedTrades.reduce((s,t) => s + calcClosedNet(t), 0);
+  const wins = closedTrades.filter(t => calcClosedNet(t) > 0).length;
+  const avgAnn = closedTrades.length ? closedTrades.reduce((s,t)=>s+calcClosedAnnReturn(t),0)/closedTrades.length : 0;
+
+  document.getElementById('closedStats').innerHTML = `
+    <div class="stat-card info">
+      <div class="stat-label">Total Realized P&L</div>
+      <div class="stat-value ${totalNet>=0?'green':'red'}">${fmtMoney(totalNet)}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Win Rate</div>
+      <div class="stat-value">${closedTrades.length ? Math.round(wins/closedTrades.length*100) : 0}%</div>
+      <div class="stat-sub">${wins} wins / ${closedTrades.length - wins} losses</div>
+    </div>
+    <div class="stat-card gold">
+      <div class="stat-label">Avg Ann. Return</div>
+      <div class="stat-value">${fmtPct(avgAnn)}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Trades</div>
+      <div class="stat-value">${closedTrades.length}</div>
+    </div>
+  `;
+
+  const sorted = [...closedTrades].sort((a,b)=>new Date(b.closedDate)-new Date(a.closedDate));
+  const rows = sorted.map(t => {
+    const net = calcClosedNet(t);
+    const ann = calcClosedAnnReturn(t);
+    return `<tr>
+      <td>${fmtDate(t.closedDate)}</td>
+      <td><strong>${t.symbol}</strong></td>
+      <td><span class="badge badge-put">${t.type}</span></td>
+      <td>${fmtDate(t.execDate)}</td>
+      <td>${fmtDate(t.expiry)}</td>
+      <td>${fmtMoney(t.strike)}</td>
+      <td>${t.contracts}</td>
+      <td>${fmtMoney(t.premium)}</td>
+      <td>${t.buyback > 0 ? fmtMoney(t.buyback) : 'Expired'}</td>
+      <td class="${net>=0?'pos':'neg'}">${fmtMoney(net)}</td>
+      <td>${t.daysHeld}d</td>
+      <td>${fmtMoney(t.exposure || calcExposure(t))}</td>
+      <td class="${ann>=0?'pos':'neg'}">${fmtPct(ann)}</td>
+      <td class="notes">${t.notes||'—'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('closedTbody').innerHTML = rows || '<tr><td colspan="14"><div class="empty"><div class="empty-icon">📦</div>No closed trades yet</div></td></tr>';
+}
+
+// ─────────────────────────────────────────
+// LOG TRADE
+// ─────────────────────────────────────────
+function logTrade() {
+  const sym = document.getElementById('logSymbol').value.trim().toUpperCase();
+  const type = document.getElementById('logType').value;
+  const execDate = document.getElementById('logExecDate').value;
+  const expiry = document.getElementById('logExpiry').value;
+  const stockAtEntry = parseFloat(document.getElementById('logStockPrice').value);
+  const strike = parseFloat(document.getElementById('logStrike').value);
+  const premium = parseFloat(document.getElementById('logPremium').value);
+  const contracts = parseInt(document.getElementById('logContracts').value);
+  const commission = parseFloat(document.getElementById('logCommission').value) || 0;
+  const delta = parseFloat(document.getElementById('logDelta').value) || null;
+  const theta = parseFloat(document.getElementById('logTheta').value) || null;
+  const iv = parseFloat(document.getElementById('logIV').value) || null;
+  const notes = document.getElementById('logNotes').value.trim();
+
+  if (!sym || !execDate || !expiry || isNaN(strike) || isNaN(premium) || isNaN(contracts)) {
+    showAlert('logAlert', 'Please fill in all required fields.', 'error');
+    return;
+  }
+
+  openTrades.push({ id:uid(), symbol:sym, type, execDate, expiry, stockAtEntry, strike, premium, contracts, commission, delta, theta, iv, notes });
+  save();
+  showAlert('logAlert', `✓ Trade logged: ${contracts}x ${sym} ${type} $${strike} exp ${fmtDate(expiry)}`, 'success');
+  ['logSymbol','logExecDate','logExpiry','logStockPrice','logStrike','logPremium','logDelta','logTheta','logIV','logNotes'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('logContracts').value = 1;
+  document.getElementById('logCommission').value = '0.66';
+  populateCloseSelect();
+}
+
+function populateCloseSelect() {
+  const sel = document.getElementById('closeSelect');
+  sel.innerHTML = '<option value="">-- Select Position --</option>' +
+    openTrades.map(t => `<option value="${t.id}">${t.symbol} | ${t.type} $${t.strike} | exp ${fmtDate(t.expiry)}</option>`).join('');
+}
+
+function closeTrade() {
+  const id = document.getElementById('closeSelect').value;
+  const closeDate = document.getElementById('closeDate').value;
+  const buyback = parseFloat(document.getElementById('closeBuyback').value) || 0;
+  const buybackComm = parseFloat(document.getElementById('closeComm').value) || 0;
+  const notes = document.getElementById('closeNotes').value.trim();
+
+  if (!id || !closeDate) { showAlert('closeAlert','Select a position and close date.','error'); return; }
+
+  const t = openTrades.find(x => x.id === id);
+  if (!t) return;
+
+  const daysHeld = Math.max(1, Math.round((new Date(closeDate) - new Date(t.execDate)) / 86400000));
+  closedTrades.push({ ...t, closedDate: closeDate, buyback, buybackComm, notes, daysHeld, exposure: calcExposure(t) });
+  openTrades = openTrades.filter(x => x.id !== id);
+  save();
+
+  const net = calcClosedNet({...t, buyback, buybackComm});
+  showAlert('closeAlert', `✓ Position closed. Net P&L: ${fmtMoney(net)}`, 'success');
+  document.getElementById('closeSelect').value = '';
+  document.getElementById('closeBuyback').value = '0';
+  document.getElementById('closeNotes').value = '';
+  populateCloseSelect();
+}
+
+// ─────────────────────────────────────────
+// PRICER
+// ─────────────────────────────────────────
+function calcPricer() {
+  const stock = parseFloat(document.getElementById('pricerStockPrice').value);
+  const strike = parseFloat(document.getElementById('pricerStrike').value);
+  const premium = parseFloat(document.getElementById('pricerPremium').value);
+  const contracts = parseInt(document.getElementById('pricerContracts').value) || 1;
+  const commission = parseFloat(document.getElementById('pricerCommission').value) || 0;
+  const expiry = document.getElementById('pricerExpiry').value;
+
+  if (!strike || !premium) return;
+
+  const net = (premium * contracts * 100) - commission;
+  const exposure = strike * contracts * 100;
+  const pctBelow = stock ? ((stock - strike) / stock) : null;
+
+  let days = 0, ann = 0, period = 0;
+  if (expiry) {
+    days = Math.round((new Date(expiry) - new Date()) / 86400000);
+    if (days > 0 && exposure) {
+      period = net / exposure;
+      ann = period * (365 / days);
+    }
+  }
+
+  document.getElementById('pr-pctBelow').textContent = pctBelow !== null ? fmtPct(pctBelow) + ' OTM' : '—';
+  document.getElementById('pr-net').textContent = fmtMoney(net);
+  document.getElementById('pr-exposure').textContent = fmtMoney(exposure);
+  document.getElementById('pr-days').textContent = days ? days + 'd' : '—';
+  document.getElementById('pr-periodReturn').textContent = period ? fmtPct(period) : '—';
+  document.getElementById('pr-annReturn').textContent = ann ? fmtPct(ann) : '—';
+}
+
+function pricerToLog() {
+  const sym = document.getElementById('pricerSymbol').value.toUpperCase();
+  const stock = document.getElementById('pricerStockPrice').value;
+  const strike = document.getElementById('pricerStrike').value;
+  const premium = document.getElementById('pricerPremium').value;
+  const contracts = document.getElementById('pricerContracts').value;
+  const commission = document.getElementById('pricerCommission').value;
+  const expiry = document.getElementById('pricerExpiry').value;
+
+  showPage('log');
+  if(sym) document.getElementById('logSymbol').value = sym;
+  if(stock) document.getElementById('logStockPrice').value = stock;
+  if(strike) document.getElementById('logStrike').value = strike;
+  if(premium) document.getElementById('logPremium').value = premium;
+  if(contracts) document.getElementById('logContracts').value = contracts;
+  if(commission) document.getElementById('logCommission').value = commission;
+  if(expiry) document.getElementById('logExpiry').value = expiry;
+  document.getElementById('logExecDate').value = new Date().toISOString().split('T')[0];
+}
+
+function clearPricer() {
+  ['pricerSymbol','pricerStockPrice','pricerStrike','pricerPremium','pricerExpiry'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('pricerContracts').value = 1;
+  document.getElementById('pricerCommission').value = '0.66';
+  document.getElementById('pricerPriceDisplay').innerHTML = '';
+  ['pr-pctBelow','pr-net','pr-exposure','pr-days','pr-periodReturn','pr-annReturn'].forEach(id => document.getElementById(id).textContent='—');
+}
+
+async function fetchPricerQuote() {
+  const sym = document.getElementById('pricerSymbol').value.trim().toUpperCase();
+  if (!sym) return;
+  const el = document.getElementById('pricerPriceDisplay');
+  el.innerHTML = '<span class="spinner"></span> <span style="font-size:12px;color:var(--text2);">Fetching price...</span>';
+  const price = await getYahooPrice(sym);
+  if (price) {
+    el.innerHTML = `<span class="live-price">${fmtMoney(price)}</span><span style="font-size:11px;color:var(--text3);margin-left:8px;">live</span>`;
+    document.getElementById('pricerStockPrice').value = price;
+    calcPricer();
+  } else {
+    el.innerHTML = `<span style="color:var(--warn);font-size:12px;">⚠ Could not fetch automatically — type the price in the field below</span>`;
+  }
+}
+
+async function fetchQuote() {
+  const sym = document.getElementById('lookupSymbol').value.trim().toUpperCase();
+  if (!sym) return;
+  const el = document.getElementById('quoteResult');
+  el.innerHTML = '<span class="spinner"></span>';
+  const price = await getYahooPrice(sym);
+  if (price) {
+    el.innerHTML = `<div><div class="live-price">${fmtMoney(price)}</div><div class="price-note">${sym} · via Yahoo Finance</div></div>`;
+  } else {
+    el.innerHTML = `<span style="color:var(--warn);font-size:12px;">⚠ Could not fetch "${sym}" — check the ticker or enter manually</span>`;
+  }
+}
+
+async function getYahooPrice(symbol) {
+  // Try multiple sources in order — CORS can block some depending on browser/network
+  const sources = [
+    // Source 1: Yahoo Finance v8 (works in some browsers)
+    async () => {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1m&range=1d`;
+      const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      const data = await res.json();
+      return data?.chart?.result?.[0]?.meta?.regularMarketPrice || null;
+    },
+    // Source 2: Yahoo Finance v7 quote endpoint
+    async () => {
+      const url = `https://query2.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data?.quoteResponse?.result?.[0]?.regularMarketPrice || null;
+    },
+    // Source 3: Yahoo Finance via allorigins CORS proxy
+    async () => {
+      const target = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=1d&interval=1d`;
+      const url = `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`;
+      const res = await fetch(url);
+      const outer = await res.json();
+      const data = JSON.parse(outer.contents);
+      return data?.chart?.result?.[0]?.meta?.regularMarketPrice || null;
+    },
+    // Source 4: Frankfurter-style fallback — not applicable for stocks,
+    // so we skip to a simple corsproxy.io approach
+    async () => {
+      const target = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=1d&interval=1d`;
+      const url = `https://corsproxy.io/?${encodeURIComponent(target)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data?.chart?.result?.[0]?.meta?.regularMarketPrice || null;
+    }
+  ];
+
+  for (const source of sources) {
+    try {
+      const price = await source();
+      if (price && price > 0) return price;
+    } catch(e) {
+      // try next source
+    }
+  }
+  return null;
+}
+
+// ─────────────────────────────────────────
+// ALERTS
+// ─────────────────────────────────────────
+function showAlert(containerId, msg, type) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  setTimeout(() => { el.innerHTML = ''; }, 5000);
+}
+
+// ─────────────────────────────────────────
+// RULES
+// ─────────────────────────────────────────
+const DEFAULT_RULES = [
+  { id: uid(), category: 'Entry', text: 'Only sell puts on stocks I would be comfortable owning at the strike price.' },
+  { id: uid(), category: 'Entry', text: 'Strike must be at least 15–20% below the current stock price (deep OTM).' },
+  { id: uid(), category: 'Entry', text: 'Minimum annualized return of 3% before entering a trade.' },
+  { id: uid(), category: 'Entry', text: 'No single position can exceed 20% of total account exposure.' },
+  { id: uid(), category: 'Entry', text: 'Prefer high-quality, large-cap stocks with strong balance sheets (S&P 500 names).' },
+  { id: uid(), category: 'Entry', text: 'Avoid selling puts within 2 weeks of an earnings announcement.' },
+  { id: uid(), category: 'Exit', text: 'Buy back the option when it reaches 20% of the original premium collected (80% profit).' },
+  { id: uid(), category: 'Exit', text: 'Buy back if the stock drops more than 8–10% against the position — do not let it go deep ITM.' },
+  { id: uid(), category: 'Exit', text: 'Let the option expire worthless if it is clearly far OTM with less than 2 weeks remaining.' },
+  { id: uid(), category: 'Risk', text: 'Never have more than 6–8 positions open at the same time.' },
+  { id: uid(), category: 'Risk', text: 'Keep total portfolio exposure below 80% of account size — preserve dry powder.' },
+  { id: uid(), category: 'Risk', text: 'Do not chase premium — if the trade does not meet the criteria, pass on it.' },
+  { id: uid(), category: 'Mindset', text: 'Review these rules before every trade. No exceptions.' },
+];
+
+let tradingRules = [];
+
+function saveRules() {
+  try { localStorage.setItem('lr_rules', JSON.stringify(tradingRules)); } catch(e) {}
+}
+function loadRules() {
+  try {
+    const r = localStorage.getItem('lr_rules');
+    if (r) { tradingRules = JSON.parse(r); }
+    else { tradingRules = DEFAULT_RULES.map(r => ({...r, id: uid()})); saveRules(); }
+  } catch(e) { tradingRules = DEFAULT_RULES.map(r => ({...r, id: uid()})); }
+}
+
+function renderRules() {
+  const wrap = document.getElementById('rulesWrap');
+  if (!tradingRules.length) {
+    wrap.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>No rules yet. Add your first rule above.</div>';
+    return;
+  }
+  wrap.innerHTML = tradingRules.map((r, i) => `
+    <div class="rule-item" id="rule-${r.id}">
+      <div class="rule-number">${String(i+1).padStart(2,'0')}</div>
+      <div class="rule-content">
+        <div class="rule-category">${r.category}</div>
+        <div class="rule-text" id="rt-${r.id}">${r.text}</div>
+        <textarea class="rule-text-input" id="ri-${r.id}" style="display:none;" rows="2">${r.text}</textarea>
+      </div>
+      <div class="rule-actions">
+        <button class="rule-edit-btn" id="reb-${r.id}" onclick="editRule('${r.id}')">Edit</button>
+        <button class="rule-del-btn" onclick="deleteRule('${r.id}')">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function editRule(id) {
+  const textEl = document.getElementById('rt-' + id);
+  const inputEl = document.getElementById('ri-' + id);
+  const btn = document.getElementById('reb-' + id);
+  if (inputEl.style.display === 'none') {
+    textEl.style.display = 'none';
+    inputEl.style.display = 'block';
+    inputEl.focus();
+    btn.textContent = 'Save';
+    btn.style.color = 'var(--accent)';
+    btn.style.borderColor = 'var(--accent)';
+  } else {
+    const newText = inputEl.value.trim();
+    if (newText) {
+      const rule = tradingRules.find(r => r.id === id);
+      if (rule) { rule.text = newText; saveRules(); }
+    }
+    textEl.textContent = inputEl.value;
+    textEl.style.display = 'block';
+    inputEl.style.display = 'none';
+    btn.textContent = 'Edit';
+    btn.style.color = '';
+    btn.style.borderColor = '';
+  }
+}
+
+function deleteRule(id) {
+  if (!confirm('Delete this rule?')) return;
+  tradingRules = tradingRules.filter(r => r.id !== id);
+  saveRules(); renderRules();
+}
+
+function addRule() {
+  const cat = prompt('Category (e.g. Entry, Exit, Risk, Mindset):', 'Entry');
+  if (cat === null) return;
+  const text = prompt('Rule text:');
+  if (!text || !text.trim()) return;
+  tradingRules.push({ id: uid(), category: cat.trim() || 'General', text: text.trim() });
+  saveRules(); renderRules();
+}
+
+// ─────────────────────────────────────────
+// ANALYTICS
+// ─────────────────────────────────────────
+function saveAccountSize() {
+  try { localStorage.setItem('lr_accountSize', document.getElementById('accountSize').value); } catch(e) {}
+}
+function loadAccountSize() {
+  try {
+    const v = localStorage.getItem('lr_accountSize');
+    if (v) document.getElementById('accountSize').value = v;
+  } catch(e) {}
+}
+
+function renderAnalytics() {
+  renderBuyingPower();
+  renderSizeWarnings();
+  renderTickerPerf();
+  renderMonthlyIncome();
+}
+
+function renderBuyingPower() {
+  const accountSize = parseFloat(document.getElementById('accountSize').value) || 0;
+  const committed = openTrades.reduce((s,t) => s + calcExposure(t), 0);
+  const available = accountSize ? Math.max(0, accountSize - committed) : null;
+  const pct = accountSize ? Math.min(100, (committed / accountSize * 100)) : null;
+  const color = pct > 80 ? 'var(--red)' : pct > 60 ? 'var(--warn)' : 'var(--accent)';
+  const r = 54, circ = 2 * Math.PI * r;
+  const dash = pct !== null ? (pct / 100) * circ : 0;
+
+  document.getElementById('bpPanel').innerHTML = `
+    <div class="bp-ring">
+      <svg width="140" height="140" viewBox="0 0 140 140">
+        <circle cx="70" cy="70" r="${r}" fill="none" stroke="var(--bg3)" stroke-width="12"/>
+        <circle cx="70" cy="70" r="${r}" fill="none" stroke="${color}" stroke-width="12"
+          stroke-dasharray="${dash.toFixed(1)} ${circ.toFixed(1)}" stroke-linecap="round"/>
+      </svg>
+      <div class="bp-ring-label">
+        <div class="bp-ring-pct" style="color:${color}">${pct !== null ? pct.toFixed(0)+'%' : '—'}</div>
+        <div class="bp-ring-sub">committed</div>
+      </div>
+    </div>
+    <div class="bp-stats">
+      <div class="bp-stat-row">
+        <div class="bp-stat"><div class="bp-stat-lbl">Committed</div><div class="bp-stat-val neg">${fmtMoney(committed)}</div></div>
+        <div class="bp-stat"><div class="bp-stat-lbl">Available</div><div class="bp-stat-val pos">${available !== null ? fmtMoney(available) : '—'}</div></div>
+      </div>
+      <div class="bp-stat-row">
+        <div class="bp-stat"><div class="bp-stat-lbl">Account Size</div><div class="bp-stat-val">${accountSize ? fmtMoney(accountSize) : 'Enter above'}</div></div>
+        <div class="bp-stat"><div class="bp-stat-lbl">Open Positions</div><div class="bp-stat-val">${openTrades.length}</div></div>
+      </div>
+      ${pct > 80 ? '<div style="color:var(--red);font-size:13px;font-weight:700;">⚠ Over 80% committed — limited room for new trades</div>' : ''}
+      ${pct > 60 && pct <= 80 ? '<div style="color:var(--warn);font-size:13px;">Approaching 80% threshold — be selective</div>' : ''}
+    </div>
+  `;
+}
+
+function renderSizeWarnings() {
+  const maxPct = parseFloat(document.getElementById('maxConcentration').value) / 100 || 0.20;
+  const totalExposure = openTrades.reduce((s,t) => s + calcExposure(t), 0);
+  const bySymbol = {};
+  openTrades.forEach(t => { bySymbol[t.symbol] = (bySymbol[t.symbol]||0) + calcExposure(t); });
+  const warnings = Object.entries(bySymbol).filter(([,v]) => v/totalExposure > maxPct).sort((a,b)=>b[1]-a[1]);
+  const all = Object.entries(bySymbol).sort((a,b)=>b[1]-a[1]);
+
+  if (!all.length) { document.getElementById('sizeWarnings').innerHTML = '<div style="color:var(--text3);font-size:13px;">No open positions to analyze.</div>'; return; }
+
+  document.getElementById('sizeWarnings').innerHTML = `
+    <div class="chart-bar-wrap">
+      ${all.map(([sym,val]) => {
+        const pct = totalExposure ? val/totalExposure : 0;
+        const over = pct > maxPct;
+        const color = over ? 'var(--warn)' : 'var(--accent)';
+        return `<div class="chart-bar-row">
+          <div class="chart-bar-label">${sym}${over ? '<span class="warn-badge">OVER</span>' : ''}</div>
+          <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.min(100,pct*100).toFixed(1)}%;background:${color}20;">
+            <span class="chart-bar-val" style="color:${color}">${(pct*100).toFixed(1)}%</span>
+          </div></div>
+          <div class="chart-bar-sub">${fmtMoney(val)}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    ${warnings.length ? `<div style="margin-top:14px;padding:12px 16px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:7px;font-size:13px;color:var(--warn);">
+      ⚠ ${warnings.map(([s])=>s).join(', ')} exceed${warnings.length===1?'s':''} your ${(maxPct*100).toFixed(0)}% concentration limit
+    </div>` : `<div style="margin-top:10px;font-size:12px;color:var(--text3);">✓ All positions within concentration limits</div>`}
+  `;
+}
+
+function renderTickerPerf() {
+  const byTicker = {};
+  closedTrades.forEach(t => {
+    if (!byTicker[t.symbol]) byTicker[t.symbol] = { wins:0, losses:0, totalNet:0, count:0 };
+    const net = calcClosedNet(t);
+    byTicker[t.symbol].count++;
+    byTicker[t.symbol].totalNet += net;
+    if (net >= 0) byTicker[t.symbol].wins++; else byTicker[t.symbol].losses++;
+  });
+  const entries = Object.entries(byTicker).sort((a,b) => b[1].totalNet - a[1].totalNet);
+  if (!entries.length) { document.getElementById('tickerPerf').innerHTML = '<div style="color:var(--text3);font-size:13px;">No closed trades yet.</div>'; return; }
+  const maxAbs = Math.max(...entries.map(([,v]) => Math.abs(v.totalNet)));
+  document.getElementById('tickerPerf').innerHTML = `
+    <div class="chart-bar-wrap">
+      ${entries.map(([sym,v]) => {
+        const pct = maxAbs ? Math.abs(v.totalNet)/maxAbs*100 : 0;
+        const color = v.totalNet >= 0 ? 'var(--green)' : 'var(--red)';
+        const winRate = v.count ? Math.round(v.wins/v.count*100) : 0;
+        return `<div class="chart-bar-row">
+          <div class="chart-bar-label">${sym}</div>
+          <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct.toFixed(1)}%;background:${color}20;">
+            <span class="chart-bar-val" style="color:${color}">${fmtMoney(v.totalNet)}</span>
+          </div></div>
+          <div class="chart-bar-sub" style="color:${winRate>=50?'var(--green)':'var(--red)'};">${winRate}% W</div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderMonthlyIncome() {
+  const byMonth = {};
+  closedTrades.forEach(t => {
+    const d = new Date(t.closedDate);
+    if (isNaN(d)) return;
+    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    byMonth[key] = (byMonth[key]||0) + calcClosedNet(t);
+  });
+  const keys = Object.keys(byMonth).sort();
+  if (!keys.length) { document.getElementById('monthlyIncome').innerHTML = '<div style="color:var(--text3);font-size:13px;padding:8px;">No closed trades yet.</div>'; return; }
+  document.getElementById('monthlyIncome').innerHTML = keys.map(k => {
+    const val = byMonth[k];
+    const [yr, mo] = k.split('-');
+    const label = new Date(yr, mo-1, 1).toLocaleDateString('en-US',{month:'short', year:'2-digit'});
+    return `<div class="month-card">
+      <div class="month-card-label">${label}</div>
+      <div class="month-card-val" style="color:${val>=0?'var(--green)':'var(--red)'}">${fmtMoney(val)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────
+// TARGET STRIKE CALCULATOR
+// ─────────────────────────────────────────
+async function fetchStrikePrice() {
+  const sym = document.getElementById('strikeSymbol').value.trim().toUpperCase();
+  if (!sym) return;
+  const el = document.getElementById('strikePriceDisplay');
+  el.innerHTML = '<span class="spinner"></span>';
+  const price = await getYahooPrice(sym);
+  if (price) {
+    el.innerHTML = `<span class="live-price">${fmtMoney(price)}</span>`;
+    document.getElementById('strikeStock').value = price;
+    calcStrikes();
+  } else {
+    el.innerHTML = `<span style="color:var(--red);font-size:13px;">Could not fetch — enter manually</span>`;
+  }
+}
+
+function calcStrikes() {
+  const stock = parseFloat(document.getElementById('strikeStock').value);
+  const premium = parseFloat(document.getElementById('strikePremium').value);
+  const contracts = parseInt(document.getElementById('strikeContracts').value) || 1;
+  const days = parseInt(document.getElementById('strikeDays').value);
+  if (!stock) { document.getElementById('strikeCards').innerHTML = ''; return; }
+  const levels = [0.10, 0.15, 0.20, 0.25, 0.30];
+  const labels = ['10% OTM','15% OTM','20% OTM','25% OTM','30% OTM'];
+  const notes  = ['Aggressive','Moderate','Conservative','Very Safe','Ultra Safe'];
+  document.getElementById('strikeCards').innerHTML = levels.map((pct, i) => {
+    const strike = Math.floor(stock * (1 - pct));
+    const net = premium ? (premium * contracts * 100) - 0.66 : null;
+    const exposure = strike * contracts * 100;
+    const ann = (net && days && exposure) ? (net/exposure)*(365/days) : null;
+    return `<div class="strike-card" onclick="useSuggestedStrike(${strike}, ${stock})">
+      <div class="strike-card-pct">${labels[i]}</div>
+      <div class="strike-card-price">$${strike}</div>
+      ${ann !== null ? `<div class="strike-card-ann">${fmtPct(ann)} ann.</div>` : ''}
+      <div class="strike-card-note">${notes[i]} · ${(pct*100).toFixed(0)}% below $${stock.toFixed(0)}</div>
+    </div>`;
+  }).join('');
+}
+
+function useSuggestedStrike(strike, stock) {
+  document.getElementById('pricerStrike').value = strike;
+  document.getElementById('pricerStockPrice').value = stock;
+  showPage('pricer');
+  calcPricer();
+}
+
+// ─────────────────────────────────────────
+// ROLL POSITION
+// ─────────────────────────────────────────
+function populateRollSelect() {
+  const sel = document.getElementById('rollSelect');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">-- Select Open Position --</option>' +
+    openTrades.filter(t => !t.isRoll).map(t =>
+      `<option value="${t.id}">${t.symbol} | ${t.type} $${t.strike} | exp ${fmtDate(t.expiry)}</option>`
+    ).join('');
+}
+
+function rollPosition() {
+  const id = document.getElementById('rollSelect').value;
+  const rollDate = document.getElementById('rollDate').value;
+  const buyback = parseFloat(document.getElementById('rollBuyback').value) || 0;
+  const newStrike = parseFloat(document.getElementById('rollNewStrike').value);
+  const newPremium = parseFloat(document.getElementById('rollNewPremium').value);
+  const newExpiry = document.getElementById('rollNewExpiry').value;
+
+  if (!id || !rollDate || !newStrike || !newPremium || !newExpiry) {
+    showAlert('rollAlert', 'Please fill in all roll fields.', 'error'); return;
+  }
+  const orig = openTrades.find(t => t.id === id);
+  if (!orig) return;
+
+  const daysHeld = Math.max(1, Math.round((new Date(rollDate) - new Date(orig.execDate)) / 86400000));
+  const rollNote = `Rolled → $${newStrike} exp ${fmtDate(newExpiry)}. Buyback: $${buyback}`;
+
+  // Close original
+  closedTrades.push({ ...orig, closedDate: rollDate, buyback, buybackComm: 0, notes: rollNote, daysHeld, exposure: calcExposure(orig), wasRolled: true });
+  openTrades = openTrades.filter(t => t.id !== id);
+
+  // Open new rolled position
+  const rollId = uid();
+  openTrades.push({
+    id: rollId, symbol: orig.symbol, type: orig.type,
+    execDate: rollDate, expiry: newExpiry,
+    stockAtEntry: orig.stockAtEntry, strike: newStrike,
+    premium: newPremium, contracts: orig.contracts,
+    commission: orig.commission, delta: orig.delta, theta: orig.theta, iv: orig.iv,
+    notes: `Rolled from $${orig.strike} exp ${fmtDate(orig.expiry)}`,
+    isRoll: true, rolledFromId: id
+  });
+
+  save();
+  showAlert('rollAlert', `✓ Rolled ${orig.symbol}: $${orig.strike} → $${newStrike}, new expiry ${fmtDate(newExpiry)}`, 'success');
+  ['rollSelect','rollDate','rollBuyback','rollNewStrike','rollNewPremium','rollNewExpiry'].forEach(i => { const el = document.getElementById(i); if(el) el.value = el.tagName === 'SELECT' ? '' : '0'; });
+  document.getElementById('rollDate').value = '';
+  populateRollSelect();
+  populateCloseSelect();
+}
+
+// ─────────────────────────────────────────
+// BACKUP & RESTORE
+// ─────────────────────────────────────────
+function backupData() {
+  const payload = {
+    version: 2,
+    exportedAt: new Date().toISOString(),
+    openTrades,
+    closedTrades,
+    tradingRules,
+    accountSize: document.getElementById('accountSize').value || ''
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = `options_backup_${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function openRestoreModal() {
+  document.getElementById('restoreModal').classList.add('visible');
+  document.getElementById('restoreInput').value = '';
+  document.getElementById('restoreErr').style.display = 'none';
+}
+
+function closeRestoreModal() {
+  document.getElementById('restoreModal').classList.remove('visible');
+}
+
+function restoreData() {
+  const raw = document.getElementById('restoreInput').value.trim();
+  const errEl = document.getElementById('restoreErr');
+  errEl.style.display = 'none';
+  try {
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data.openTrades) || !Array.isArray(data.closedTrades)) throw new Error('bad format');
+    openTrades = data.openTrades;
+    closedTrades = data.closedTrades;
+    if (Array.isArray(data.tradingRules)) tradingRules = data.tradingRules;
+    if (data.accountSize) document.getElementById('accountSize').value = data.accountSize;
+    save(); saveRules(); saveAccountSize();
+    closeRestoreModal();
+    renderDashboard(); renderOpen(); renderClosed();
+    renderRules(); renderAnalytics(); populateCloseSelect(); populateRollSelect();
+    showAlert('dashAlert', `✓ Restored ${openTrades.length} open trades, ${closedTrades.length} closed trades, and ${tradingRules.length} rules.`, 'success');
+  } catch(e) {
+    errEl.style.display = 'block';
+  }
+}
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+function init() {
+  const now = new Date();
+  document.getElementById('headerDate').textContent = now.toLocaleDateString('en-US', {weekday:'short', year:'numeric', month:'long', day:'numeric'});
+  document.getElementById('logExecDate').value = now.toISOString().split('T')[0];
+  document.getElementById('closeDate').value = now.toISOString().split('T')[0];
+  document.getElementById('rollDate').value = now.toISOString().split('T')[0];
+  load();
+  loadRules();
+  loadAccountSize();
+  renderDashboard();
+  populateCloseSelect();
+  populateRollSelect();
+}
+
+init();
+</script>
+</body>
+</html>
